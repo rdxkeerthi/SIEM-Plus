@@ -1,0 +1,17 @@
+apiVersion: v2
+name: siem-plus
+description: A Helm chart for SIEM-Plus Security Platform
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - siem
+  - security
+  - monitoring
+  - detection
+home: https://github.com/rdxkeerthi/SIEM-Plus
+sources:
+  - https://github.com/rdxkeerthi/SIEM-Plus
+maintainers:
+  - name: rdxkeerthi
+    email: rdxkeerthi@github.com
