@@ -1,0 +1,141 @@
+# Production values for SIEM-Plus
+
+manager:
+  replicaCount: 5
+  image:
+    repository: ghcr.io/rdxkeerthi/siem-plus-manager
+    tag: "latest"
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 1Gi
+    requests:
+      cpu: 1000m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 5
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 70
+
+detect:
+  replicaCount: 10
+  image:
+    repository: ghcr.io/rdxkeerthi/siem-plus-detect
+    tag: "latest"
+    pullPolicy: Always
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 2Gi
+    requests:
+      cpu: 2000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 10
+    maxReplicas: 50
+    targetCPUUtilizationPercentage: 75
+
+ui:
+  replicaCount: 3
+  image:
+    repository: ghcr.io/rdxkeerthi/siem-plus-ui
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    type: LoadBalancer
+  resources:
+    limits:
+      cpu: 500m
+      memory: 256Mi
+    requests:
+      cpu: 250m
+      memory: 128Mi
+
+postgresql:
+  enabled: true
+  auth:
+    username: siem_admin
+    database: siem_plus
+  primary:
+    persistence:
+      enabled: true
+      size: 100Gi
+      storageClass: "gp3"
+    resources:
+      limits:
+        cpu: 4000m
+        memory: 8Gi
+      requests:
+        cpu: 2000m
+        memory: 4Gi
+
+redis:
+  enabled: true
+  architecture: standalone
+  master:
+    persistence:
+      enabled: true
+      size: 20Gi
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+
+kafka:
+  enabled: true
+  replicaCount: 3
+  persistence:
+    enabled: true
+    size: 200Gi
+    storageClass: "gp3"
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+    requests:
+      cpu: 2000m
+      memory: 4Gi
+
+opensearch:
+  enabled: true
+  replicas: 5
+  persistence:
+    enabled: true
+    size: 1Ti
+    storageClass: "gp3"
+  resources:
+    limits:
+      cpu: 8000m
+      memory: 16Gi
+    requests:
+      cpu: 4000m
+      memory: 8Gi
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: siem.yourcompany.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: siem-plus-tls
+      hosts:
+        - siem.yourcompany.com
+
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+  grafana:
+    enabled: true

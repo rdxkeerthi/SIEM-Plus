@@ -1,0 +1,162 @@
+# SIEM-Plus Integration Configuration
+
+# Slack Integration
+slack:
+  enabled: true
+  webhook_url: "${SLACK_WEBHOOK_URL}"
+  channels:
+    critical_alerts: "#security-critical"
+    high_alerts: "#security-high"
+    general: "#security-alerts"
+  notifications:
+    - event: alert_created
+      severity: critical
+      channel: "#security-critical"
+    - event: alert_created
+      severity: high
+      channel: "#security-high"
+    - event: case_created
+      channel: "#security-general"
+
+# JIRA Integration
+jira:
+  enabled: true
+  url: "${JIRA_URL}"
+  username: "${JIRA_USERNAME}"
+  api_token: "${JIRA_API_TOKEN}"
+  project: "SEC"
+  issue_types:
+    critical: "Incident"
+    high: "Task"
+    medium: "Task"
+    low: "Task"
+  auto_create:
+    - severity: critical
+      issue_type: "Incident"
+      priority: "Critical"
+    - severity: high
+      issue_type: "Task"
+      priority: "High"
+
+# PagerDuty Integration
+pagerduty:
+  enabled: false
+  integration_key: "${PAGERDUTY_INTEGRATION_KEY}"
+  severity_mapping:
+    critical: "critical"
+    high: "error"
+    medium: "warning"
+    low: "info"
+
+# Email Integration
+email:
+  enabled: true
+  smtp_host: "${SMTP_HOST}"
+  smtp_port: 587
+  smtp_username: "${SMTP_USERNAME}"
+  smtp_password: "${SMTP_PASSWORD}"
+  from_address: "alerts@siem-plus.io"
+  recipients:
+    critical:
+      - "security-team@company.com"
+      - "ciso@company.com"
+    high:
+      - "security-team@company.com"
+
+# Microsoft Teams Integration
+teams:
+  enabled: false
+  webhook_url: "${TEAMS_WEBHOOK_URL}"
+  channels:
+    critical: "Security Critical"
+    high: "Security Alerts"
+
+# ServiceNow Integration
+servicenow:
+  enabled: false
+  instance_url: "${SERVICENOW_URL}"
+  username: "${SERVICENOW_USERNAME}"
+  password: "${SERVICENOW_PASSWORD}"
+  table: "incident"
+  auto_create:
+    - severity: critical
+      priority: 1
+    - severity: high
+      priority: 2
+
+# Webhook Integration (Generic)
+webhooks:
+  enabled: true
+  endpoints:
+    - name: "custom_webhook"
+      url: "${CUSTOM_WEBHOOK_URL}"
+      events:
+        - alert_created
+        - case_created
+      headers:
+        Authorization: "Bearer ${WEBHOOK_TOKEN}"
+
+# Syslog Integration
+syslog:
+  enabled: false
+  host: "${SYSLOG_HOST}"
+  port: 514
+  protocol: "tcp"
+  format: "rfc5424"
+
+# Splunk Integration
+splunk:
+  enabled: false
+  hec_url: "${SPLUNK_HEC_URL}"
+  hec_token: "${SPLUNK_HEC_TOKEN}"
+  index: "siem_plus"
+  source: "siem-plus"
+  sourcetype: "json"
+
+# Elasticsearch Integration
+elasticsearch:
+  enabled: false
+  hosts:
+    - "${ELASTICSEARCH_HOST}"
+  username: "${ELASTICSEARCH_USERNAME}"
+  password: "${ELASTICSEARCH_PASSWORD}"
+  index_prefix: "siem-plus"
+
+# Threat Intelligence Feeds
+threat_intel:
+  enabled: true
+  feeds:
+    - name: "abuse_ch"
+      url: "https://urlhaus.abuse.ch/downloads/csv_recent/"
+      type: "url"
+      update_interval: 3600
+    - name: "alienvault_otx"
+      url: "${ALIENVAULT_OTX_URL}"
+      api_key: "${ALIENVAULT_API_KEY}"
+      type: "ioc"
+      update_interval: 7200
+
+# MISP Integration
+misp:
+  enabled: false
+  url: "${MISP_URL}"
+  api_key: "${MISP_API_KEY}"
+  verify_ssl: true
+  auto_publish: false
+
+# TheHive Integration
+thehive:
+  enabled: false
+  url: "${THEHIVE_URL}"
+  api_key: "${THEHIVE_API_KEY}"
+  organization: "SIEM-Plus"
+
+# Cortex Integration (for enrichment)
+cortex:
+  enabled: false
+  url: "${CORTEX_URL}"
+  api_key: "${CORTEX_API_KEY}"
+  analyzers:
+    - "VirusTotal_GetReport"
+    - "AbuseIPDB_1_0"
+    - "Shodan_Host"

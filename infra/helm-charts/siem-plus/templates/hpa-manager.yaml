@@ -1,0 +1,22 @@
+{{- if .Values.manager.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "siem-plus.fullname" . }}-manager
+  labels:
+    {{- include "siem-plus.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "siem-plus.fullname" . }}-manager
+  minReplicas: {{ .Values.manager.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.manager.autoscaling.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.manager.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

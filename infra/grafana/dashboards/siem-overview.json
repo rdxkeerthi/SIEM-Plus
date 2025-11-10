@@ -1,0 +1,138 @@
+{
+  "dashboard": {
+    "title": "SIEM-Plus Overview",
+    "tags": ["siem", "security"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Events Per Second",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(events_processed_total[5m])",
+            "legendFormat": "Events/sec"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Alerts Generated",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(alerts_generated_total)",
+            "legendFormat": "Total Alerts"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Active Agents",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "count(agent_status{status=\"active\"})",
+            "legendFormat": "Active"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "Detection Latency",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(detection_latency_seconds_bucket[5m]))",
+            "legendFormat": "p95"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(detection_latency_seconds_bucket[5m]))",
+            "legendFormat": "p99"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 5,
+        "title": "Alerts by Severity",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum by (severity) (alerts_generated_total)",
+            "legendFormat": "{{severity}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      },
+      {
+        "id": 6,
+        "title": "API Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "{{method}} {{path}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+      },
+      {
+        "id": 7,
+        "title": "Kafka Consumer Lag",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "kafka_consumer_lag",
+            "legendFormat": "{{topic}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+      },
+      {
+        "id": 8,
+        "title": "Rule Evaluation Errors",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(rule_errors_total[5m]))",
+            "legendFormat": "Errors/sec"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 24}
+      },
+      {
+        "id": 9,
+        "title": "Parse Errors",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(parse_errors_total[5m]))",
+            "legendFormat": "Errors/sec"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 24}
+      },
+      {
+        "id": 10,
+        "title": "Memory Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "container_memory_usage_bytes{pod=~\"siem-plus-.*\"}",
+            "legendFormat": "{{pod}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24}
+      }
+    ],
+    "refresh": "10s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    }
+  }
+}

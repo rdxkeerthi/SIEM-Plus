@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "siem-plus.fullname" . }}-detect
+  labels:
+    {{- include "siem-plus.labels" . | nindent 4 }}
+    app.kubernetes.io/component: detect
+spec:
+  {{- if not .Values.detect.autoscaling.enabled }}
+  replicas: {{ .Values.detect.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "siem-plus.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: detect
+  template:
+    metadata:
+      labels:
+        {{- include "siem-plus.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: detect
+    spec:
+      containers:
+      - name: detect
+        image: "{{ .Values.detect.image.repository }}:{{ .Values.detect.image.tag }}"
+        imagePullPolicy: {{ .Values.detect.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: 8081
+          protocol: TCP
+        env:
+        - name: KAFKA_BROKERS
+          value: {{ .Values.kafka.brokers | default "siem-plus-kafka:9092" }}
+        - name: REDIS_URL
+          value: {{ .Values.redis.url | default "redis://siem-plus-redis:6379" }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          {{- toYaml .Values.detect.resources | nindent 10 }}
