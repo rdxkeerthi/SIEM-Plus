@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  manager:
+    build:
+      context: ./manager
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgres://siem_admin:siem_password@postgres:5432/siem_plus?sslmode=disable
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BROKERS=kafka:9092
+    depends_on:
+      - postgres
+      - redis
+      - kafka
+    networks:
+      - siem-network
+
+  detect:
+    build:
+      context: ./detect
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - KAFKA_BROKERS=kafka:9092
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - kafka
+      - redis
+    networks:
+      - siem-network
+
+  ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - manager
+    networks:
+      - siem-network
+
+networks:
+  siem-network:
+    external: true

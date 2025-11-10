@@ -1,0 +1,25 @@
+name: Auto-assign Critical Alerts
+description: Automatically assign critical alerts to security team
+trigger_type: alert_created
+trigger_conditions:
+  severity: critical
+enabled: true
+
+actions:
+  - type: assign_alert
+    params:
+      user: security-team@company.com
+
+  - type: send_notification
+    params:
+      channel: slack
+      message: "🚨 Critical alert detected and assigned to security team"
+
+  - type: create_ticket
+    params:
+      system: jira
+      project: SEC
+      issue_type: Incident
+      priority: Critical
+      title: "{{ alert.title }}"
+      description: "{{ alert.description }}"

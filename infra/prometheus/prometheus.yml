@@ -1,0 +1,43 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'siem-plus-dev'
+    environment: 'development'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'manager-api'
+    static_configs:
+      - targets: ['manager:8080']
+    metrics_path: '/metrics'
+
+  - job_name: 'detect-engine'
+    static_configs:
+      - targets: ['detect:8081']
+    metrics_path: '/metrics'
+
+  - job_name: 'ingest-pipeline'
+    static_configs:
+      - targets: ['ingest:8082']
+    metrics_path: '/metrics'
+
+  - job_name: 'opensearch'
+    static_configs:
+      - targets: ['opensearch:9200']
+    metrics_path: '/_prometheus/metrics'
+
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka:9101']
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']

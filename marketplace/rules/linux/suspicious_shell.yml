@@ -1,0 +1,31 @@
+id: 002-linux-suspicious-shell
+name: Suspicious Shell Command Execution
+description: Detects suspicious shell commands often used by attackers
+severity: medium
+enabled: true
+
+detection:
+  selection:
+    - field: event_type
+      operator: equals
+      value: process_start
+    - field: command_line
+      operator: regex
+      value: ".*(wget|curl).*(sh|bash|/tmp).*"
+  condition: all of selection
+
+tags:
+  - attack.execution
+  - attack.t1059.004
+  - linux
+  - shell
+
+mitre_attack:
+  - T1059.004
+
+false_positives:
+  - System updates
+  - Package installations
+
+references:
+  - https://attack.mitre.org/techniques/T1059/004/

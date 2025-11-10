@@ -1,0 +1,34 @@
+id: 001-powershell-suspicious
+name: Suspicious PowerShell Execution
+description: Detects suspicious PowerShell command execution with encoded commands
+severity: high
+enabled: true
+
+detection:
+  selection:
+    - field: event_type
+      operator: equals
+      value: process_start
+    - field: process_name
+      operator: contains
+      value: powershell
+    - field: command_line
+      operator: regex
+      value: ".*(-enc|-encodedcommand|-e ).*"
+  condition: all of selection
+
+tags:
+  - attack.execution
+  - attack.t1059.001
+  - windows
+  - powershell
+
+mitre_attack:
+  - T1059.001
+
+false_positives:
+  - Legitimate administrative scripts
+  - Software deployment tools
+
+references:
+  - https://attack.mitre.org/techniques/T1059/001/

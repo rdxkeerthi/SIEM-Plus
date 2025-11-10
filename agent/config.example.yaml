@@ -1,0 +1,55 @@
+# SIEM-Plus Agent Configuration Example
+
+manager:
+  url: "https://manager.siem-plus.io"
+  tenant_id: "your-tenant-id"
+  agent_key: "${AGENT_KEY}"  # Use environment variable
+
+tls:
+  verify_server: true
+  ca_cert: "/etc/siem-agent/ca.crt"
+  client_cert: "/etc/siem-agent/agent.crt"
+  client_key: "/etc/siem-agent/agent.key"
+
+fim:
+  enabled: true
+  paths:
+    - path: "/etc"
+      recursive: true
+      exclude: ["*.log", "*.tmp"]
+    - path: "/usr/bin"
+      recursive: false
+    - path: "/var/www"
+      recursive: true
+  scan_interval: 300
+  hash_algorithm: "blake3"
+
+procmon:
+  enabled: true
+  track_network: true
+  track_file_access: true
+
+netmon:
+  enabled: true
+  track_connections: true
+  track_dns: true
+
+telemetry:
+  enabled: true
+  interval: 60
+  metrics:
+    - cpu
+    - memory
+    - disk
+    - network
+
+logging:
+  level: "info"
+  format: "json"
+  output: "/var/log/siem-agent/agent.log"
+
+performance:
+  max_memory_mb: 100
+  max_cpu_percent: 5
+  batch_size: 100
+  flush_interval: 10
