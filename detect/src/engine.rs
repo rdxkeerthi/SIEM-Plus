@@ -1,19 +1,22 @@
 use anyhow::Result;
-use rdkafka::consumer::{Consumer, StreamConsumer};
 use rdkafka::config::ClientConfig;
+use rdkafka::consumer::{Consumer, StreamConsumer};
 use rdkafka::message::Message;
-use serde_json::Value;
-use tracing::{info, warn, debug};
+use serde_json::{json, Value};
+use tracing::{debug, info, warn};
+use uuid::Uuid;
 
-use crate::sigma::{SigmaRule, evaluate_rule};
-use crate::state::StateStore;
+use crate::alerts::AlertProducer;
 use crate::metrics::Metrics;
+use crate::sigma::{evaluate_rule, SigmaRule};
+use crate::state::StateStore;
 
 pub async fn run(
     kafka_brokers: String,
     rules: Vec<SigmaRule>,
     state_store: StateStore,
     metrics: Metrics,
+    alert_producer: AlertProducer,
 ) -> Result<()> {
     info!("Starting detection engine");
 
@@ -36,7 +39,7 @@ pub async fn run(
                     match serde_json::from_slice::<Value>(payload) {
                         Ok(event) => {
                             debug!("Processing event: {:?}", event);
-                            process_event(event, &rules, &state_store, &metrics).await;
+                            process_event(event, &rules, &state_store, &metrics, &alert_producer).await;
                         }
                         Err(e) => {
                             warn!("Failed to parse event: {}", e);
@@ -58,6 +61,7 @@ async fn process_event(
     rules: &[SigmaRule],
     state_store: &StateStore,
     metrics: &Metrics,
+    alert_producer: &AlertProducer,
 ) {
     for rule in rules {
         if !rule.enabled {
@@ -69,8 +73,14 @@ async fn process_event(
                 info!("Rule matched: {} for event", rule.name);
                 metrics.alerts_generated.inc();
                 
-                // Generate alert
-                let alert = serde_json::json!({
+                let tenant_id = event
+                    .get("tenant_id")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("default");
+
+                let alert = json!({
+                    "id": Uuid::new_v4().to_string(),
+                    "tenant_id": tenant_id,
                     "rule_id": rule.id,
                     "rule_name": rule.name,
                     "severity": rule.severity,
@@ -78,8 +88,11 @@ async fn process_event(
                     "timestamp": chrono::Utc::now().to_rfc3339(),
                 });
 
-                // TODO: Send alert to alert queue
-                debug!("Alert generated: {:?}", alert);
+                if let Err(e) = alert_producer.send(alert.clone()).await {
+                    warn!("Failed to publish alert: {}", e);
+                } else {
+                    debug!("Alert generated: {:?}", alert);
+                }
             }
             Ok(false) => {
                 // Rule didn't match

@@ -10,7 +10,9 @@ services:
     environment:
       - DATABASE_URL=postgres://siem_admin:siem_password@postgres:5432/siem_plus?sslmode=disable
       - REDIS_URL=redis://redis:6379
-      - KAFKA_BROKERS=kafka:9092
+      - KAFKA_BROKERS=kafka:29092
+      - KAFKA_TOPIC=events
+      - KAFKA_ALERTSTOPIC=alerts
     depends_on:
       - postgres
       - redis
@@ -25,11 +27,33 @@ services:
     ports:
       - "8081:8081"
     environment:
-      - KAFKA_BROKERS=kafka:9092
+      - KAFKA_BROKERS=kafka:29092
       - REDIS_URL=redis://redis:6379
+      - RULES_PATH=/rules
+      - ALERTS_TOPIC=alerts
     depends_on:
       - kafka
       - redis
+    networks:
+      - siem-network
+    volumes:
+      - ./marketplace/rules:/rules:ro
+
+  ingest:
+    build:
+      context: ./ingest
+      dockerfile: Dockerfile
+    environment:
+      - KAFKA_BROKERS=kafka:29092
+      - EVENTS_TOPIC=events
+      - ALERTS_TOPIC=alerts
+      - EVENTS_CONSUMER_GROUP=siem-events-indexer
+      - ALERTS_CONSUMER_GROUP=siem-alerts-writer
+      - POSTGRES_URL=postgres://siem_admin:siem_password@postgres:5432/siem_plus?sslmode=disable
+      - OPENSEARCH_URL=http://opensearch:9200
+    depends_on:
+      - kafka
+      - postgres
     networks:
       - siem-network
 

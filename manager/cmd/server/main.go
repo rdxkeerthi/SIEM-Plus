@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/segmentio/kafka-go"
 	"github.com/siem-plus/manager/internal/api"
 	"github.com/siem-plus/manager/internal/config"
 	"github.com/siem-plus/manager/internal/database"
@@ -37,6 +38,14 @@ func main() {
 
 	// Initialize Redis
 	redisClient := database.NewRedisClient(cfg.Redis.URL)
+
+	// Setup Kafka writer
+	kafkaWriter := kafka.NewWriter(kafka.WriterConfig{
+		Brokers:  cfg.Kafka.Brokers,
+		Topic:    cfg.Kafka.Topic,
+		Balancer: &kafka.Hash{},
+	})
+	defer kafkaWriter.Close()
 
 	// Setup Gin router
 	if cfg.Server.Mode == "production" {
@@ -122,7 +131,7 @@ func main() {
 			// Events (ingestion endpoint)
 			events := protected.Group("/events")
 			{
-				eventHandler := api.NewEventHandler(db, redisClient)
+				eventHandler := api.NewEventHandler(db, redisClient, kafkaWriter)
 				events.POST("", eventHandler.Ingest)
 			}
 

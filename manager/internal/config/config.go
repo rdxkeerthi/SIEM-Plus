@@ -1,6 +1,9 @@
 package config
 
 import (
+	"os"
+	"strings"
+
 	"github.com/spf13/viper"
 )
 
@@ -31,8 +34,9 @@ type JWTConfig struct {
 }
 
 type KafkaConfig struct {
-	Brokers []string
-	Topic   string
+	Brokers     []string
+	Topic       string
+	AlertsTopic string
 }
 
 func Load() (*Config, error) {
@@ -51,8 +55,10 @@ func Load() (*Config, error) {
 	viper.SetDefault("jwt.expiration", 3600)
 	viper.SetDefault("kafka.brokers", []string{"localhost:9092"})
 	viper.SetDefault("kafka.topic", "events")
+	viper.SetDefault("kafka.alertsTopic", "alerts")
 
 	// Environment variables
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
@@ -64,6 +70,14 @@ func Load() (*Config, error) {
 	var config Config
 	if err := viper.Unmarshal(&config); err != nil {
 		return nil, err
+	}
+
+	if brokers := os.Getenv("KAFKA_BROKERS"); brokers != "" {
+		config.Kafka.Brokers = strings.Split(brokers, ",")
+	}
+
+	if alertsTopic := os.Getenv("KAFKA_ALERTSTOPIC"); alertsTopic != "" {
+		config.Kafka.AlertsTopic = alertsTopic
 	}
 
 	return &config, nil
